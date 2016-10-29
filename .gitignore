@@ -95,3 +95,5 @@ flask
 *.swp
 
 virt
+
+\#*.log
