@@ -13,3 +13,17 @@ Parser for irssi log files.
 - links (check actions, chats)
 
 """
+
+import pyparsing as pp
+
+time = pp.Regex('([01]\d|2[0-3]):([0-5]\d)')
+nick = pp.Regex('[a-zA-Z0-9\-_|^]+')
+userhost = pp.Literal('[') + pp.Regex('[a-zA-Z0-9\-_|^.@~]+') + pp.Literal(']')
+detail = pp.restOfLine
+
+chat = pp.Literal('<') + nick + pp.Literal('>') + detail
+action = pp.Literal('*') + nick + detail
+notification = pp.Literal('-!-') + nick + pp.Optional(userhost) + detail
+
+sentence = pp.Or([action, chat, notification])
+logentry = time + sentence
