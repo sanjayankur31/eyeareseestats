@@ -42,7 +42,7 @@ joinlist = {}
 quitlist = {}
 # List of list of nicks - that are for the same user if we can figure that out
 nicklist = []
-# Dictionary of users and their dialogues
+# Dictionary of users and their dialogues - get metrics from this too
 dialoguelist = {}
 # Dictionary of users and list of who they mention
 mentionlist = {}
@@ -53,6 +53,16 @@ timelist = {}
 # A list of links taken from the logs
 linklist = {}
 
+
+def findmentiondestination(thisnick, detail):
+    """Parse the detail to find mentioned nicks."""
+    mentioned = []
+    for nickset in nicklist:
+        for nick in nickset:
+            if nick in detail:
+                mentioned.append(nick)
+
+    return mentioned
 
 def parsefilelistindirfromprefix(dir, prefix):
     """Parse a list of files when a directory is given."""
@@ -171,11 +181,27 @@ def parselogfiles(filelist):
                     else:
                         dialoguelist[thisnick] = [detail]
 
+                    mentionednicks = findmentiondestination(thisnick, detail)
+                    if len(mentionednicks) > 0:
+                        if thisnick in mentionlist:
+                            newmentionlist = list(set(mentionlist[thisnick] + mentionednicks))
+                            mentionlist[thisnick] = newmentionlist
+                        else:
+                            mentionlist[thisnick] = mentionednicks
+
                 if linetype == 'action':
                     if thisnick in actionlist:
                         actionlist[thisnick].append([detail])
                     else:
                         actionlist[thisnick] = [detail]
+
+                    mentionednicks = findmentiondestination(thisnick, detail)
+                    if len(mentionednicks) > 0:
+                        if thisnick in mentionlist:
+                            newmentionlist = list(set(mentionlist[thisnick] + mentionednicks))
+                            mentionlist[thisnick] = newmentionlist
+                        else:
+                            mentionlist[thisnick] = mentionednicks
 
         # print(sorted(activitylist.items(), key=operator.itemgetter(1)))
         # print()
@@ -188,6 +214,8 @@ def parselogfiles(filelist):
         # print(nicklist)
         # print()
         # print(sorted(dialoguelist.items(), key=operator.itemgetter(1)))
+        # print()
+        # print(mentionlist)
 
 if __name__ == "__main__":
     parselogfiles(['test/#fedora.10-29.log'])
