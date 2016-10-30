@@ -17,10 +17,10 @@ Parser for irssi log files.
 import pyparsing as pp
 
 time = pp.Regex('([01]\d|2[0-3]):([0-5]\d)').setResultsName('time')
-nick = pp.Regex('[a-zA-Z0-9\-_|^]+').setResultsName('nick')
+nick = pp.Regex('[a-zA-Z0-9\-_\\|^\[\]{}`]+').setResultsName('nick')
 userhost = pp.Literal('[') + pp.Regex('[a-zA-Z0-9\-_|^.@~]+') + pp.Literal(']')
 detail = pp.restOfLine.setResultsName('detail')
 
-chat = time + pp.Literal('<') + nick + pp.Literal('>') + detail
+chatline = time + pp.Literal('<') + nick + pp.Literal('>') + detail
 action = time + pp.Literal('*') + nick + detail
 notification = time + pp.Literal('-!-') + nick + pp.Optional(userhost) + detail
