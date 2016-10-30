@@ -31,14 +31,21 @@ import parsers.common as util
 import sys
 
 
-def parsefilelist(filelist):
-    """Parse list of log files."""
-    for logfile in filelist:
-        parselogfile(logfile)
+def parsefilelistindirfromprefix(dir, prefix):
+    """Parse a list of files when a directory is given."""
 
 
-def parselogfile(filename):
-    """Parse a log file."""
+def parsefilelistfromprefix(prefix):
+    """Parse a list of files obtained using a prefix."""
+
+
+def parselogfiles(filelist):
+    """Parse a list of files.
+
+    This is the main worker function.
+
+    Note: please check beforehand that the list is valid.
+    """
     activitylist = {}
     topiclist = []
     joinlist = {}
@@ -51,111 +58,112 @@ def parselogfile(filename):
     linklist = {}
     linetype = ''
 
-    with open(filename, 'r') as logs:
-        for line in logs:
-            line = line.rstrip()
-            linetype = 'none'
-            result = None
+    for filename in filelist:
+        with open(filename, 'r') as logs:
+            for line in logs:
+                line = line.rstrip()
+                linetype = 'none'
+                result = None
 
-            if linetype == 'none':
-                try:
-                    result = action.parseString(line)
-                except pp.ParseException as x:
-                    pass
-                if result:
-                    linetype = 'action'
+                if linetype == 'none':
+                    try:
+                        result = action.parseString(line)
+                    except pp.ParseException as x:
+                        pass
+                    if result:
+                        linetype = 'action'
 
-            if linetype == 'none':
-                try:
-                    result = chatline.parseString(line)
-                except pp.ParseException as x:
-                    pass
-                if result:
-                    linetype = 'chat'
+                if linetype == 'none':
+                    try:
+                        result = chatline.parseString(line)
+                    except pp.ParseException as x:
+                        pass
+                    if result:
+                        linetype = 'chat'
 
-            if linetype == 'none':
-                try:
-                    result = notification.parseString(line)
-                except pp.ParseException as x:
-                    linetype = 'none'
-                if result:
-                    linetype = 'notification'
+                if linetype == 'none':
+                    try:
+                        result = notification.parseString(line)
+                    except pp.ParseException as x:
+                        linetype = 'none'
+                    if result:
+                        linetype = 'notification'
 
-            if linetype == 'none':
-                print("Malformed line: '{}'".format(line), file=sys.stderr)
-                continue
+                if linetype == 'none':
+                    print("Malformed line: '{}'".format(line), file=sys.stderr)
+                    continue
 
-            time = result.time
-            hour = time.split(':')[0]
-            detail = result.detail
+                time = result.time
+                hour = time.split(':')[0]
+                detail = result.detail
 
-            if hour in timelist:
-                timelist[hour] += 1
-            else:
-                timelist[hour] = 1
-
-            thisnick = result.nick
-            nick_known = False
-            for nicklistet in nicklist:
-                if nicklistet and thisnick in nicklistet:
-                    nick_known = True
-            if not nick_known:
-                nicklist.append([thisnick])
-
-            # store activity count per nick
-            if thisnick in activitylist:
-                activitylist[thisnick] += 1
-            else:
-                activitylist[thisnick] = 1
-
-            if linetype == 'notification':
-                if 'has quit' in detail or 'has left' in detail:
-                    if thisnick in quitlist:
-                        quitlist[thisnick] += 1
-                    else:
-                        quitlist[thisnick] = 1
-                if 'has joined' in detail:
-                    if thisnick in joinlist:
-                        joinlist[thisnick] += 1
-                    else:
-                        joinlist[thisnick] = 1
-
-                # handle renames
-                newknown = False
-                if 'is now known as' in detail:
-                    newnick = util.getnewnick(detail)
-                    for nicklistet in nicklist:
-                        if nicklistet:
-                            # get the set current nick belongs to
-                            if thisnick in nicklistet:
-                                knownset1 = nicklistet
-
-                            if newnick in nicklistet:
-                                newknown = True
-                                knownset2 = nicklistet
-
-                    # it they're both known, merge the two sets
-                    if newknown and knownset1 != knownset2:
-                        newset = list(set(knownset1 + knownset2))
-                        nicklist.remove(knownset1)
-                        nicklist.remove(knownset2)
-                        nicklist.append(newset)
-                    else:
-                        newset = list(set(knownset1 + [newnick]))
-                        nicklist.remove(knownset1)
-                        nicklist.append(newset)
-
-            if linetype == 'chat':
-                if thisnick in dialoguelist:
-                    dialoguelist[thisnick].append([detail])
+                if hour in timelist:
+                    timelist[hour] += 1
                 else:
-                    dialoguelist[thisnick] = [detail]
+                    timelist[hour] = 1
 
-            if linetype == 'action':
-                if thisnick in actionlist:
-                    actionlist[thisnick].append([detail])
+                thisnick = result.nick
+                nick_known = False
+                for nicklistet in nicklist:
+                    if nicklistet and thisnick in nicklistet:
+                        nick_known = True
+                if not nick_known:
+                    nicklist.append([thisnick])
+
+                # store activity count per nick
+                if thisnick in activitylist:
+                    activitylist[thisnick] += 1
                 else:
-                    actionlist[thisnick] = [detail]
+                    activitylist[thisnick] = 1
+
+                if linetype == 'notification':
+                    if 'has quit' in detail or 'has left' in detail:
+                        if thisnick in quitlist:
+                            quitlist[thisnick] += 1
+                        else:
+                            quitlist[thisnick] = 1
+                    if 'has joined' in detail:
+                        if thisnick in joinlist:
+                            joinlist[thisnick] += 1
+                        else:
+                            joinlist[thisnick] = 1
+
+                    # handle renames
+                    newknown = False
+                    if 'is now known as' in detail:
+                        newnick = util.getnewnick(detail)
+                        for nicklistet in nicklist:
+                            if nicklistet:
+                                # get the set current nick belongs to
+                                if thisnick in nicklistet:
+                                    knownset1 = nicklistet
+
+                                if newnick in nicklistet:
+                                    newknown = True
+                                    knownset2 = nicklistet
+
+                        # it they're both known, merge the two sets
+                        if newknown and knownset1 != knownset2:
+                            newset = list(set(knownset1 + knownset2))
+                            nicklist.remove(knownset1)
+                            nicklist.remove(knownset2)
+                            nicklist.append(newset)
+                        else:
+                            newset = list(set(knownset1 + [newnick]))
+                            nicklist.remove(knownset1)
+                            nicklist.append(newset)
+
+                if linetype == 'chat':
+                    if thisnick in dialoguelist:
+                        dialoguelist[thisnick].append([detail])
+                    else:
+                        dialoguelist[thisnick] = [detail]
+
+                if linetype == 'action':
+                    if thisnick in actionlist:
+                        actionlist[thisnick].append([detail])
+                    else:
+                        actionlist[thisnick] = [detail]
 
         # print(sorted(activitylist.items(), key=operator.itemgetter(1)))
         # print()
@@ -170,4 +178,4 @@ def parselogfile(filename):
         # print(sorted(dialoguelist.items(), key=operator.itemgetter(1)))
 
 if __name__ == "__main__":
-    parsefilelist(['test/#fedora.10-29.log'])
+    parselogfiles(['test/#fedora.10-29.log'])
