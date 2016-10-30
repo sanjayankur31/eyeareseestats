@@ -90,6 +90,7 @@ class TestIRSSILogs(unittest.TestCase):
             pass
 
         self.assertEqual("FranciscoD_", result.nick)
+        self.assertNotEqual("FranciscoD|Uni", result.nick)
         self.assertEqual("20:40", result.time)
         self.assertTrue('has quit' in result.detail or 'has left' in result.detail)
 

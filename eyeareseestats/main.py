@@ -27,6 +27,7 @@ import pyparsing as pp
 import metrics
 import notifications
 from parsers.irssi import action, chat, notification
+import parsers.common as util
 import sys
 
 
@@ -38,11 +39,11 @@ def parsefilelist(filelist):
 
 def parselogfile(filename):
     """Parse a log file."""
-    all_nicks = {}
+    nick_activity = {}
     topics = []
     joins = {}
     quits = {}
-    renicks = {}
+    nicks = []
     speaks = {}
     mentions = {}
     activity_list = {}
@@ -81,49 +82,75 @@ def parselogfile(filename):
             else:
                 activity_list[hour] = 1
 
-            nick = result.nick
-            # store nicks
-            if nick in all_nicks:
-                all_nicks[nick] += 1
+            thisnick = result.nick
+            nick_known = False
+            for nickset in nicks:
+                if nickset and thisnick in nickset:
+                    nick_known = True
+            if not nick_known:
+                nicks.append([thisnick])
+
+            # store activity count per nick
+            if thisnick in nick_activity:
+                nick_activity[thisnick] += 1
             else:
-                all_nicks[nick] = 1
+                nick_activity[thisnick] = 1
 
             if linetype == 'notification':
                 detail = result.detail
                 if 'has quit' in detail or 'has left' in detail:
-                    if nick in quits:
-                        quits[nick] += 1
+                    if thisnick in quits:
+                        quits[thisnick] += 1
                     else:
-                        quits[nick] = 1
+                        quits[thisnick] = 1
                 if 'has joined' in detail:
-                    if nick in joins:
-                        joins[nick] += 1
+                    if thisnick in joins:
+                        joins[thisnick] += 1
                     else:
-                        joins[nick] = 1
+                        joins[thisnick] = 1
+
+                # handle renames
+                newknown = False
                 if 'is now known as' in detail:
-                    if nick in renicks:
-                        renicks[nick] += 1
+                    newnick = util.getnewnick(detail)
+                    for nickset in nicks:
+                        if nickset:
+                            # get the set current nick belongs to
+                            if thisnick in nickset:
+                                knownset1 = nickset
+
+                            if newnick in nickset:
+                                newknown = True
+                                knownset2 = nickset
+
+                    # it they're both known, merge the two sets
+                    if newknown and knownset1 != knownset2:
+                        newset = list(set(knownset1 + knownset2))
+                        nicks.remove(knownset1)
+                        nicks.remove(knownset2)
+                        nicks.append(newset)
                     else:
-                        renicks[nick] = 1
+                        newset = list(set(knownset1 + [newnick]))
+                        nicks.remove(knownset1)
+                        nicks.append(newset)
 
             if linetype == 'chat':
-                if nick in speaks:
-                    speaks[nick] += 1
+                if thisnick in speaks:
+                    speaks[thisnick] += 1
                 else:
-                    speaks[nick] = 1
+                    speaks[thisnick] = 1
 
-
-        print(sorted(all_nicks.items(), key=operator.itemgetter(1)))
-        print()
-        print(sorted(activity_list.items(), key=operator.itemgetter(0)))
-        print()
-        print(sorted(quits.items(), key=operator.itemgetter(1)))
-        print()
-        print(sorted(joins.items(), key=operator.itemgetter(1)))
-        print()
-        print(sorted(renicks.items(), key=operator.itemgetter(1)))
-        print()
-        print(sorted(speaks.items(), key=operator.itemgetter(1)))
+        # print(sorted(nick_activity.items(), key=operator.itemgetter(1)))
+        # print()
+        # print(sorted(activity_list.items(), key=operator.itemgetter(0)))
+        # print()
+        # print(sorted(quits.items(), key=operator.itemgetter(1)))
+        # print()
+        # print(sorted(joins.items(), key=operator.itemgetter(1)))
+        # print()
+        print(nicks)
+        # print()
+        # print(sorted(speaks.items(), key=operator.itemgetter(1)))
 
 if __name__ == "__main__":
     parsefilelist(['test/#fedora.10-29.log'])
