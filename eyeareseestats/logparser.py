@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Main function file.
+Main log parsers live here.
 
-File: main.py
+File: logparser.py
 
 Copyright 2016 Ankur Sinha
 Author: Ankur Sinha <sanjay DOT ankur AT gmail DOT com>
@@ -31,6 +31,29 @@ import parsers.common as util
 import sys
 
 
+# The lists that will store our metrics
+# Dictionary of users with their total activity count
+activitylist = {}
+# Total list of topics
+topiclist = []
+# Dictionary of users and how many times they joined
+joinlist = {}
+# Dictionary of users and how many times they left or quit
+quitlist = {}
+# List of list of nicks - that are for the same user if we can figure that out
+nicklist = []
+# Dictionary of users and their dialogues
+dialoguelist = {}
+# Dictionary of users and list of who they mention
+mentionlist = {}
+# Dictionary of users and a list of their actions
+actionlist = {}
+# A list of times from all activity - to find trends and frequencies
+timelist = {}
+# A list of links taken from the logs
+linklist = {}
+
+
 def parsefilelistindirfromprefix(dir, prefix):
     """Parse a list of files when a directory is given."""
 
@@ -46,18 +69,7 @@ def parselogfiles(filelist):
 
     Note: please check beforehand that the list is valid.
     """
-    activitylist = {}
-    topiclist = []
-    joinlist = {}
-    quitlist = {}
-    nicklist = []
-    dialoguelist = {}
-    mentionlist = {}
-    actionlist = {}
-    timelist = {}
-    linklist = {}
     linetype = ''
-
     for filename in filelist:
         with open(filename, 'r') as logs:
             for line in logs:

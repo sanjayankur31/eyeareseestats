@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fetch metrics.
+Calculate useful metrics from information that we gather from logs.
 
 File: metrics.py
 
