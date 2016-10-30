@@ -27,10 +27,12 @@ import pyparsing as pp
 import metrics
 import notifications
 from parsers.irssi import action, chatline, notification
-import parsers.common as util
+from parsers.common import ppurl, getnewnick
 import sys
 
 
+# For development only
+debug = True
 # The lists that will store our metrics
 # Dictionary of users with their total activity count
 activitylist = {}
@@ -44,14 +46,17 @@ quitlist = {}
 nicklist = []
 # Dictionary of users and their dialogues - get metrics from this too
 dialoguelist = {}
-# Dictionary of users and list of who they mention
+# Dictionary of users and list of who they mention (mentioned nicks are
+# repeated so that we can count frequency of how much people speak to each
+# other
 mentionlist = {}
 # Dictionary of users and a list of their actions
 actionlist = {}
 # A list of times from all activity - to find trends and frequencies
 timelist = {}
 # A list of links taken from the logs
-linklist = {}
+# permit repetition to count how popular a URL is
+urllist = {}
 
 
 def findmentiondestination(thisnick, detail):
@@ -63,6 +68,34 @@ def findmentiondestination(thisnick, detail):
                 mentioned.append(nick)
 
     return mentioned
+
+
+def printdebug():
+    """Print debug info, for development only."""
+    if debug:
+        print("Activity in ascending order")
+        print(sorted(activitylist.items(), key=operator.itemgetter(1)))
+        print()
+        print("Hours in order of time")
+        print(sorted(timelist.items(), key=operator.itemgetter(0)))
+        print()
+        print("Joiners in ascending order")
+        print(sorted(joinlist.items(), key=operator.itemgetter(1)))
+        print()
+        print("Quitters in ascending order")
+        print(sorted(quitlist.items(), key=operator.itemgetter(1)))
+        print()
+        print("Complete nicklist")
+        print(nicklist)
+        # print()
+        # print(sorted(dialoguelist.items(), key=operator.itemgetter(1)))
+        print()
+        print("List of mentions")
+        print(mentionlist)
+        print()
+        print("List of URLs")
+        print(urllist)
+
 
 def parsefilelistindirfromprefix(dir, prefix):
     """Parse a list of files when a directory is given."""
@@ -153,7 +186,7 @@ def parselogfiles(filelist):
                     # handle renames
                     newknown = False
                     if 'is now known as' in detail:
-                        newnick = util.getnewnick(detail)
+                        newnick = getnewnick(detail)
                         for nicklistet in nicklist:
                             if nicklistet:
                                 # get the set current nick belongs to
@@ -175,47 +208,40 @@ def parselogfiles(filelist):
                             nicklist.remove(knownset1)
                             nicklist.append(newset)
 
-                if linetype == 'chat':
-                    if thisnick in dialoguelist:
-                        dialoguelist[thisnick].append([detail])
-                    else:
-                        dialoguelist[thisnick] = [detail]
-
+                # things common for chats and actions
+                else:
                     mentionednicks = findmentiondestination(thisnick, detail)
                     if len(mentionednicks) > 0:
                         if thisnick in mentionlist:
-                            newmentionlist = list(set(mentionlist[thisnick] + mentionednicks))
+                            newmentionlist = (mentionlist[thisnick]
+                                              + mentionednicks)
                             mentionlist[thisnick] = newmentionlist
                         else:
                             mentionlist[thisnick] = mentionednicks
 
-                if linetype == 'action':
-                    if thisnick in actionlist:
-                        actionlist[thisnick].append([detail])
-                    else:
-                        actionlist[thisnick] = [detail]
-
-                    mentionednicks = findmentiondestination(thisnick, detail)
-                    if len(mentionednicks) > 0:
-                        if thisnick in mentionlist:
-                            newmentionlist = list(set(mentionlist[thisnick] + mentionednicks))
-                            mentionlist[thisnick] = newmentionlist
+                    listoflinks = []
+                    for linkintext, start, finish in ppurl.scanString(detail):
+                        listoflinks.append(linkintext.url)
+                    if len(listoflinks) > 0:
+                        if thisnick in urllist:
+                            newlist = urllist[thisnick] + listoflinks
+                            urllist[thisnick] = newlist
                         else:
-                            mentionlist[thisnick] = mentionednicks
+                            urllist[thisnick] = listoflinks
 
-        # print(sorted(activitylist.items(), key=operator.itemgetter(1)))
-        # print()
-        # print(sorted(timelist.items(), key=operator.itemgetter(0)))
-        # print()
-        # print(sorted(quitlist.items(), key=operator.itemgetter(1)))
-        # print()
-        # print(sorted(joinlist.items(), key=operator.itemgetter(1)))
-        # print()
-        # print(nicklist)
-        # print()
-        # print(sorted(dialoguelist.items(), key=operator.itemgetter(1)))
-        # print()
-        # print(mentionlist)
+                    if linetype == 'chat':
+                        if thisnick in dialoguelist:
+                            dialoguelist[thisnick].append([detail])
+                        else:
+                            dialoguelist[thisnick] = [detail]
+
+                    if linetype == 'action':
+                        if thisnick in actionlist:
+                            actionlist[thisnick].append([detail])
+                        else:
+                            actionlist[thisnick] = [detail]
+
+    printdebug()
 
 if __name__ == "__main__":
     parselogfiles(['test/#fedora.10-29.log'])

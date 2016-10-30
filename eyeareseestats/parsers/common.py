@@ -25,6 +25,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyparsing as pp
 
 
+ppurl = pp.Regex('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+').setResultsName('url')
+
+
 def getnewnick(sentence):
     """Parse detail to get new nick."""
     nick = pp.Regex('[a-zA-Z0-9\-_|^]+').setResultsName('nick')
