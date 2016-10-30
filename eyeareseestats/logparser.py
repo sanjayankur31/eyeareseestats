@@ -27,7 +27,7 @@ import pyparsing as pp
 import metrics
 import notifications
 from parsers.irssi import action, chatline, notification
-from parsers.common import ppurl, getnewnick
+from parsers.common import ppurl, getnewnick, findmentionednicks
 from metrics import actionlist, joinlist, quitlist, urllist, mentionlist
 from metrics import activitylist, timelist, dialoguelist, nicklist
 import sys
@@ -35,17 +35,6 @@ import sys
 
 # For development only
 debug = True
-
-
-def findmentiondestination(thisnick, detail):
-    """Parse the detail to find mentioned nicks."""
-    mentioned = []
-    for nickset in nicklist:
-        for nick in nickset:
-            if nick in detail:
-                mentioned.append(nick)
-
-    return mentioned
 
 
 def printdebug():
@@ -188,7 +177,7 @@ def parselogfiles(filelist):
 
                 # things common for chats and actions
                 else:
-                    mentionednicks = findmentiondestination(thisnick, detail)
+                    mentionednicks = findmentionednicks(thisnick, detail)
                     if len(mentionednicks) > 0:
                         if thisnick in mentionlist:
                             newmentionlist = (mentionlist[thisnick]

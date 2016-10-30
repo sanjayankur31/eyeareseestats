@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import pyparsing as pp
+from metrics import nicklist
 
 
 ppurl = pp.Regex('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+').setResultsName('url')
@@ -37,3 +38,14 @@ def getnewnick(sentence):
         return result.nick
     except pp.ParseException as x:
         pass
+
+
+def findmentionednicks(thisnick, detail):
+    """Parse the detail to find mentioned nicks."""
+    mentioned = []
+    for nickset in nicklist:
+        for nick in nickset:
+            if nick in detail:
+                mentioned.append(nick)
+
+    return mentioned
