@@ -23,12 +23,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 import pyparsing as pp
-from eyeareseestats.parsers.irssi import action, notification, nick, chat
+from eyeareseestats.parsers.irssi import action, notification, nick, chatline, time
 
 
 class TestIRSSILogs(unittest.TestCase):
 
     """Test for IRSSI parser."""
+
+    def test_time(self):
+        """Test time regex."""
+        times = [
+            '22:50', '22:15'
+        ]
+        result = None
+
+        for entry in times:
+            try:
+                result = time.parseString(entry)
+            except pp.ParseException as x:
+                pass
+            self.assertEqual(entry, result.time)
 
     def test_nicks(self):
         """Test the nicks regex."""
@@ -38,17 +52,18 @@ class TestIRSSILogs(unittest.TestCase):
             'FranciscoD^|Uni',
             'FranciscoD-_Uni',
         ]
+        result = None
 
         for entry in nicks:
             try:
                 result = nick.parseString(entry)
             except pp.ParseException as x:
                 pass
-
             self.assertEqual(entry, result.nick)
 
     def test_actions(self):
         """Test actions."""
+        result = None
         example = "22:11  * FranciscoD|Uni goes off for a bit"
         try:
             result = action.parseString(example)
@@ -60,17 +75,24 @@ class TestIRSSILogs(unittest.TestCase):
 
     def test_chats(self):
         """Test chats."""
-        example = "21:51 <FranciscoD|Uni> seeing if I can easily extend pisg"
-        try:
-            result = chat.parseString(example)
-        except pp.ParseException as x:
-            pass
+        result = None
+        examples = [
+            "21:51 < FranciscoD|new> seeing if ??I can easily extend pisg",
+            "22:47 < FranciscoD__^> haha,  why f23"
+        ]
+        for example in examples:
+            result = None
+            try:
+                result = chatline.parseString(example)
+            except pp.ParseException as x:
+                pass
+            self.assertIsNotNone(result)
 
-        self.assertEqual("FranciscoD|Uni", result.nick)
-        self.assertEqual("21:51", result.time)
+
 
     def test_joins(self):
         """Test joins."""
+        result = None
         example = "14:20 -!- FranciscoD [franciscod@something] has joined #fedora"
         try:
             result = notification.parseString(example)
@@ -79,10 +101,11 @@ class TestIRSSILogs(unittest.TestCase):
 
         self.assertEqual("FranciscoD", result.nick)
         self.assertEqual("14:20", result.time)
-        self.assertTrue('has joined' in result.detail)
+        self.assertTrue('has joined' in result.detail, msg=result.detail)
 
     def test_leaves(self):
         """Test leaves and quits."""
+        result = None
         example = "20:40 -!- FranciscoD_ [franciscod@something] has quit [Ping timeout: 258 seconds]"
         try:
             result = notification.parseString(example)
@@ -92,10 +115,11 @@ class TestIRSSILogs(unittest.TestCase):
         self.assertEqual("FranciscoD_", result.nick)
         self.assertNotEqual("FranciscoD|Uni", result.nick)
         self.assertEqual("20:40", result.time)
-        self.assertTrue('has quit' in result.detail or 'has left' in result.detail)
+        self.assertTrue('has quit' in result.detail or 'has left' in result.detail, msg=result.detail)
 
     def test_renicks(self):
         """Test nick changes."""
+        result = None
         example = "21:38 -!- FranciscoD|Uni is now known as FranciscoD"
         try:
             result = notification.parseString(example)
@@ -104,7 +128,7 @@ class TestIRSSILogs(unittest.TestCase):
 
         self.assertEqual("FranciscoD|Uni", result.nick)
         self.assertEqual("21:38", result.time)
-        self.assertTrue('is now known as' in result.detail)
+        self.assertTrue('is now known as' in result.detail, msg=result.detail)
 
 
 if __name__ == "__main__":
