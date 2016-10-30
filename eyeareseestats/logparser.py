@@ -28,35 +28,13 @@ import metrics
 import notifications
 from parsers.irssi import action, chatline, notification
 from parsers.common import ppurl, getnewnick
+from metrics import actionlist, joinlist, quitlist, urllist, mentionlist
+from metrics import activitylist, timelist, dialoguelist, nicklist
 import sys
 
 
 # For development only
 debug = True
-# The lists that will store our metrics
-# Dictionary of users with their total activity count
-activitylist = {}
-# Total list of topics
-topiclist = []
-# Dictionary of users and how many times they joined
-joinlist = {}
-# Dictionary of users and how many times they left or quit
-quitlist = {}
-# List of list of nicks - that are for the same user if we can figure that out
-nicklist = []
-# Dictionary of users and their dialogues - get metrics from this too
-dialoguelist = {}
-# Dictionary of users and list of who they mention (mentioned nicks are
-# repeated so that we can count frequency of how much people speak to each
-# other
-mentionlist = {}
-# Dictionary of users and a list of their actions
-actionlist = {}
-# A list of times from all activity - to find trends and frequencies
-timelist = {}
-# A list of links taken from the logs
-# permit repetition to count how popular a URL is
-urllist = {}
 
 
 def findmentiondestination(thisnick, detail):
