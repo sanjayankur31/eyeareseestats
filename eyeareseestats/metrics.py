@@ -22,6 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
+# For development only
+debug = True
+
 # Metrics #
 # Dictionary of users with their total activity count
 activitylist = {}

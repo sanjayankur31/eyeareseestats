@@ -24,44 +24,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import operator
 import pyparsing as pp
-import metrics
 import notifications
 from parsers.irssi import action, chatline, notification
 from parsers.common import ppurl, getnewnick, findmentionednicks
 from metrics import actionlist, joinlist, quitlist, urllist, mentionlist
 from metrics import activitylist, timelist, dialoguelist, nicklist
+from metrics import debug
+from reports import reportall2rst, printdebug
 import sys
-
-
-# For development only
-debug = True
-
-
-def printdebug():
-    """Print debug info, for development only."""
-    if debug:
-        print("Activity in ascending order")
-        print(sorted(activitylist.items(), key=operator.itemgetter(1)))
-        print()
-        print("Hours in order of time")
-        print(sorted(timelist.items(), key=operator.itemgetter(0)))
-        print()
-        print("Joiners in ascending order")
-        print(sorted(joinlist.items(), key=operator.itemgetter(1)))
-        print()
-        print("Quitters in ascending order")
-        print(sorted(quitlist.items(), key=operator.itemgetter(1)))
-        print()
-        print("Complete nicklist")
-        print(nicklist)
-        # print()
-        # print(sorted(dialoguelist.items(), key=operator.itemgetter(1)))
-        print()
-        print("List of mentions")
-        print(mentionlist)
-        print()
-        print("List of URLs")
-        print(urllist)
 
 
 def parsefilelistindirfromprefix(dir, prefix):
@@ -208,7 +178,9 @@ def parselogfiles(filelist):
                         else:
                             actionlist[thisnick] = [detail]
 
-    printdebug()
+    # printdebug()
+    # with open('output.rst', 'w') as output:
+    #    reportall2rst(output)
 
 if __name__ == "__main__":
     parselogfiles(['test/#fedora.10-29.log'])

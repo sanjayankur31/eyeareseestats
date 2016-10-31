@@ -15,3 +15,8 @@ Metrics monitored
 - nick changes
 - op/deop
 - links
+
+Outputs
+-------
+
+- rst, so that you can easily use :code:`rst2html` etc., to generate a fancy html page.
