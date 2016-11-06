@@ -37,6 +37,57 @@ def escapeforrst(item):
     return item
 
 
+def reportsummary2rst(output=sys.stdout):
+    """A short summary of highlights."""
+    print("A summary of collected metrics", file=output)
+    print("==============================", file=output)
+    print(file=output)
+
+    counter = 5
+    print("Activity", file=output)
+    print("--------", file=output)
+    print(file=output)
+    for nick, frequency in sorted(activitylist.items(),
+                                  key=operator.itemgetter(1),
+                                  reverse=True):
+        print("#. {}: {}".format(escapeforrst(nick), frequency), file=output)
+        counter -= 1
+        if counter == 0:
+            break
+    print(file=output)
+
+    print("Total accounts seen: {}".format(len(nicklist)), file=output)
+    print(file=output)
+
+    print("Activity per hour", file=output)
+    print("-----------------", file=output)
+    print(file=output)
+    for hour, frequency in sorted(timelist.items(),
+                                  key=operator.itemgetter(0)):
+        print("- {}: {}".format(hour, frequency), file=output)
+    print(file=output)
+
+    counter = 5
+    print("Dialogs", file=output)
+    print("-------", file=output)
+    print(file=output)
+    for nick, dialogs in sorted(dialoguelist.items(),
+                                key=operator.itemgetter(1)):
+        print("#. {}: {}".format(
+            escapeforrst(nick), len(dialogs)), file=output)
+        counter -= 1
+        if counter == 0:
+            break
+    print(file=output)
+
+    print("List of URLs", file=output)
+    print("------------", file=output)
+    print(file=output)
+    for nick, urls in urllist.items():
+        print("#. {}: {}".format(
+            escapeforrst(nick), ', '.join(urls)), file=output)
+
+
 def reportall2rst(output=sys.stdout):
     """Dump everything to an rst file."""
     print("All collected metrics", file=output)

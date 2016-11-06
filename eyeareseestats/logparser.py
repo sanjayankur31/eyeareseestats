@@ -29,7 +29,7 @@ from parsers.common import ppurl, getnewnick, findmentionednicks
 from metrics import actionlist, joinlist, quitlist, urllist, mentionlist
 from metrics import activitylist, timelist, dialoguelist, nicklist
 from metrics import debug
-from reports import reportall2rst, printdebug
+from reports import reportall2rst, printdebug, reportsummary2rst
 import sys
 from os import listdir
 from os.path import isfile, join
@@ -194,7 +194,7 @@ def parselogfiles(filelist):
 
     # printdebug()
     # with open('output.rst', 'w') as output:
-    #    reportall2rst(output)
+    #     reportsummary2rst(output)
 
 if __name__ == "__main__":
     # parselogfiles(['test/#fedora.10-29.log'])
