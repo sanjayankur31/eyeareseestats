@@ -37,10 +37,6 @@ def escapeforrst(item):
     return item
 
 
-def printrstlist(dictionary):
-    """Print a RST list from a dictionary."""
-
-
 def reportall2rst(output=sys.stdout):
     """Dump everything to an rst file."""
     print("All collected metrics", file=output)
