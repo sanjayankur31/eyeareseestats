@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import operator
 import pyparsing as pp
-import notifications
 from parsers.irssi import action, chatline, notification
 from parsers.common import ppurl, getnewnick, findmentionednicks
 from metrics import actionlist, joinlist, quitlist, urllist, mentionlist
@@ -32,14 +31,29 @@ from metrics import activitylist, timelist, dialoguelist, nicklist
 from metrics import debug
 from reports import reportall2rst, printdebug
 import sys
+from os import listdir
+from os.path import isfile, join
+import re
 
 
-def parsefilelistindirfromprefix(dir, prefix):
+def parsefilelistindirfromprefix(dirpath, prefix):
     """Parse a list of files when a directory is given."""
+    directorylist = listdir(dirpath)
+    prefixregex = re.compile(re.escape(prefix))
+    filelist = []
+    for entry in directorylist:
+        # you can have multiple slashes, it doesn't make a difference
+        fullentry = join(dirpath + '/' + entry)
+        if isfile(fullentry):
+            if (prefixregex.match(entry)):
+                filelist.append(fullentry)
+
+    parselogfiles(filelist)
 
 
 def parsefilelistfromprefix(prefix):
     """Parse a list of files obtained using a prefix."""
+    parsefilelistindirfromprefix('./', prefix)
 
 
 def parselogfiles(filelist):
@@ -183,4 +197,5 @@ def parselogfiles(filelist):
     #    reportall2rst(output)
 
 if __name__ == "__main__":
-    parselogfiles(['test/#fedora.10-29.log'])
+    # parselogfiles(['test/#fedora.10-29.log'])
+    parsefilelistindirfromprefix('/home/asinha/irclogs/2016/', '#fedora.')
