@@ -1,3 +1,11 @@
+WIP
+===
+
+Trello board here: https://trello.com/b/R1wPPOQc 
+
+Feel free to add/fix things and open pull requests!
+
+
 Parser notes
 #############
 
