@@ -45,7 +45,7 @@ def findmentionednicks(thisnick, detail):
     mentioned = []
     for nickset in nicklist:
         for nick in nickset:
-            if nick in detail:
+            if nick and (nick in detail):
                 mentioned.append(nick)
 
     return mentioned
