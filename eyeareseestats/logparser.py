@@ -193,9 +193,11 @@ def parselogfiles(filelist):
                             actionlist[thisnick] = [detail]
 
     # printdebug()
-    # with open('output.rst', 'w') as output:
-    #     reportsummary2rst(output)
+    with open('output-summary.rst', 'w') as output:
+        reportsummary2rst(output)
+    with open('output-detailed.rst', 'w') as output:
+        reportall2rst(output)
 
 if __name__ == "__main__":
     # parselogfiles(['test/#fedora.10-29.log'])
-    parsefilelistindirfromprefix('/home/asinha/irclogs/2016/', '#fedora.')
+    parsefilelistindirfromprefix('/home/asinha/dump/fedora-join-stats/201610/', '#fedora-join.')
